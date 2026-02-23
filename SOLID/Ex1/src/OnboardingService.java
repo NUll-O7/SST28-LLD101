@@ -2,12 +2,16 @@ import java.util.*;
 
 public class OnboardingService {
     private final StudentRepository db;
+    private final ConsolePrinter printer;
 
-    public OnboardingService(StudentRepository db) { this.db = db; }
+    public OnboardingService(StudentRepository db, ConsolePrinter printer) {
+        this.db = db;
+        this.printer = printer;
+    }
 
     // Intentionally violates SRP: parses + validates + creates ID + saves + prints.
     public void registerFromRawInput(String raw) {
-        System.out.println("INPUT: " + raw);
+        printer.printRawInput(raw);
 
         StudentParser parser = new StudentParser();
         StudentInput parsed = parser.parse(raw);
@@ -22,8 +26,7 @@ public class OnboardingService {
         List<String> errors = validator.validate(parsed);
 
         if (!errors.isEmpty()) {
-            System.out.println("ERROR: cannot register");
-            for (String e : errors) System.out.println("- " + e);
+            printer.printValidationErrors(errors);
             return;
         }
 
@@ -32,9 +35,6 @@ public class OnboardingService {
 
         db.save(rec);
 
-        System.out.println("OK: created student " + id);
-        System.out.println("Saved. Total students: " + db.count());
-        System.out.println("CONFIRMATION:");
-        System.out.println(rec);
+        printer.printConfirmation(rec, db.count());
     }
 }
